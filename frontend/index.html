@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+
+<div class="header">
+
+<a href="index.html" class="logo">Vigia BR</a>
+
+<div class="menu">
+<a href="#" onclick="entrarSistema()">Entrar</a>
+<a href="sobre.html">Sobre</a>
+</div>
+
+</div>
+
+
+<!-- HERO -->
+
+<div class="hero">
+
+<div class="hero-text">
+
+<h1>Controle inteligente de validade</h1>
+
+<p>
+Reduza perdas com produtos vencidos e transforme itens próximos da validade em oportunidade de venda.
+</p>
+
+<a href="#" onclick="entrarSistema()" class="btn">Entrar no sistema</a>
+
+</div>
+
+<img src="../assets/imagens/imagem1.png">
+
+</div>
+
+
+<!-- BENEFÍCIOS -->
+
+<div class="section">
+
+<div class="cards">
+
+<div class="card" onclick="entrarSistema()">
+
+<h3>Alertas automáticos</h3>
+
+<p>
+Receba avisos quando produtos estiverem próximos da validade.
+</p>
+
+</div>
+
+<div class="card" onclick="entrarSistema()">
+
+<h3>Promoções inteligentes</h3>
+
+<p>
+Venda produtos antes que eles vençam e reduza prejuízos.
+</p>
+
+</div>
+
+<div class="card" onclick="location.href='resultados.html'">
+
+<h3>Relatórios financeiros</h3>
+
+<p>
+Veja quanto dinheiro sua loja recuperou com o controle de validade.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+Vigia BR • Sistema inteligente de controle de validade
+
+</div>
+
+
+<script>
+
+function entrarSistema(){
+
+const funcionario = localStorage.getItem("funcionario")
+
+if(funcionario){
+window.location.href = "dashboard.html"
+}else{
+window.location.href = "login.html"
+}
+
+}
+
+</script>
+
+</body>
+
+</html>

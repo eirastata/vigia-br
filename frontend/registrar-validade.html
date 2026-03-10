@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Registrar lote - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<div class="sidebar">
+
+<h2>Vigia BR</h2>
+
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="produtos-risco.html">⚠️ Produtos em risco</a>
+<a href="promocoes.html">💰 Promoções</a>
+<a href="ranking.html">📉 Ranking</a>
+<a href="registrar-validade.html">➕ Registrar lote</a>
+
+<a href="#" onclick="logout()">🚪 Sair</a>
+
+</div>
+
+
+<div class="main">
+
+<p id="usuarioLogado" style="margin-bottom:20px;font-weight:bold;"></p>
+
+<div class="card" style="max-width:500px">
+
+<h1>Registrar novo lote</h1>
+
+<label>Produto</label>
+<input id="produto" type="text" placeholder="Ex: Sanduíche natural">
+
+<label>Quantidade</label>
+<input id="quantidade" type="number" placeholder="Ex: 12">
+
+<label>Preço unitário (R$)</label>
+<input id="preco" type="number" step="0.01" placeholder="Ex: 6.50">
+
+<label>Lote</label>
+<input id="lote" type="text" placeholder="Ex: SN0305">
+
+<label>Validade</label>
+<input id="validade" type="date">
+
+<button class="btn" onclick="salvarLote()">Salvar lote</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+// proteção de login
+const funcionario = localStorage.getItem("funcionario")
+
+if(!funcionario){
+window.location.href = "login.html"
+}
+
+// mostrar funcionário logado
+document.getElementById("usuarioLogado").innerText =
+"Funcionário logado: " + funcionario
+
+
+function logout(){
+
+localStorage.removeItem("funcionario")
+
+window.location.href="login.html"
+
+}
+
+
+async function salvarLote(){
+
+const produto = document.getElementById("produto").value
+const quantidade = document.getElementById("quantidade").value
+const preco = document.getElementById("preco").value
+const lote = document.getElementById("lote").value
+const validade = document.getElementById("validade").value
+
+if(!produto || !quantidade || !preco || !lote || !validade){
+alert("Preencha todos os campos!")
+return
+}
+
+const dados = {
+
+produto: produto,
+quantidade: Number(quantidade),
+preco_unitario: Number(preco),
+lote: lote,
+validade: validade,
+funcionario: funcionario
+
+}
+
+try{
+
+const resposta = await fetch("http://127.0.0.1:8000/produtos",{
+
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body: JSON.stringify(dados)
+
+})
+
+await resposta.json()
+
+alert("Lote registrado com sucesso!")
+
+document.getElementById("produto").value=""
+document.getElementById("quantidade").value=""
+document.getElementById("preco").value=""
+document.getElementById("lote").value=""
+document.getElementById("validade").value=""
+
+}catch(erro){
+
+alert("Erro ao registrar lote")
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

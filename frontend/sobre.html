@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sobre - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>Vigia BR</h2>
+
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="produtos-risco.html">⚠️ Produtos em risco</a>
+<a href="promocoes.html">💰 Promoções</a>
+<a href="ranking.html">📉 Ranking</a>
+<a href="registrar-validade.html">➕ Registrar lote</a>
+
+<a href="#" onclick="logout()">🚪 Sair</a>
+
+</div>
+
+
+<div class="main">
+
+<p id="usuarioLogado" style="margin-bottom:20px;font-weight:bold;"></p>
+
+<h1>Sobre o Vigia BR</h1>
+
+<p>
+O Vigia BR foi criado para ajudar lojas, mercados e conveniências a evitar perdas causadas por produtos vencidos.
+Em muitos estabelecimentos, o controle de validade ainda é feito manualmente em papel, o que aumenta o risco de desperdício.
+</p>
+
+<p>
+Com o Vigia BR, os produtos são monitorados digitalmente e o sistema alerta quando a validade está próxima,
+permitindo que a loja crie promoções e venda os produtos antes que eles vençam.
+</p>
+
+<p>
+Além disso, o sistema mostra relatórios de prejuízo evitado, ajudando gestores a entender quanto dinheiro
+foi recuperado graças ao controle inteligente de validade.
+</p>
+
+
+<div class="images">
+
+<img src="../assets/imagens/imagem1.png">
+<img src="../assets/imagens/imagem2.png">
+
+</div>
+
+</div>
+
+
+<script>
+
+// proteção de login
+const funcionario = localStorage.getItem("funcionario")
+
+if(!funcionario){
+window.location.href = "login.html"
+}
+
+// mostrar usuário logado
+document.getElementById("usuarioLogado").innerText =
+"Funcionário logado: " + funcionario
+
+
+function logout(){
+
+localStorage.removeItem("funcionario")
+
+window.location.href = "login.html"
+
+}
+
+</script>
+
+</body>
+</html>

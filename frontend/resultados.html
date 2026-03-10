@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Resultados - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>Vigia BR</h2>
+
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="produtos-risco.html">⚠️ Produtos em risco</a>
+<a href="promocoes.html">💰 Promoções</a>
+<a href="ranking.html">📉 Ranking</a>
+<a href="registrar-validade.html">➕ Registrar lote</a>
+
+<a href="#" onclick="logout()">🚪 Sair</a>
+
+</div>
+
+
+<div class="main">
+
+<h1>Resultados financeiros</h1>
+
+<p id="usuarioLogado" style="margin-bottom:20px;font-weight:bold;"></p>
+
+<div class="card destaque">
+
+<h2 id="perdaEvitada">R$ 0</h2>
+<p>Prejuízo evitado com promoções</p>
+
+</div>
+
+
+<h2>Resumo financeiro</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Valor</th>
+</tr>
+</thead>
+
+<tbody id="tabelaFinanceiro">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+// proteção de login
+const funcionario = localStorage.getItem("funcionario")
+
+if(!funcionario){
+window.location.href = "login.html"
+}
+
+// mostrar usuário logado
+document.getElementById("usuarioLogado").innerText =
+"Funcionário logado: " + funcionario
+
+
+function logout(){
+
+localStorage.removeItem("funcionario")
+
+window.location.href = "login.html"
+
+}
+
+
+async function carregarResultados(){
+
+const resposta = await fetch("http://127.0.0.1:8000/impacto-financeiro")
+
+const financeiro = await resposta.json()
+
+
+document.getElementById("perdaEvitada").innerText =
+"R$ " + financeiro.perda_evitada
+
+
+const tabela = document.getElementById("tabelaFinanceiro")
+
+tabela.innerHTML = `
+<tr>
+<td>Perda total possível</td>
+<td>R$ ${financeiro.perda_total}</td>
+</tr>
+
+<tr>
+<td>Receita com promoções</td>
+<td>R$ ${financeiro.receita_promocao}</td>
+</tr>
+
+<tr>
+<td>Perda evitada</td>
+<td>R$ ${financeiro.perda_evitada}</td>
+</tr>
+`
+
+}
+
+carregarResultados()
+
+</script>
+
+</body>
+</html>

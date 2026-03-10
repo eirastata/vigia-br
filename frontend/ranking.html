@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Ranking de funcionários - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<div class="sidebar">
+
+<h2>Vigia BR</h2>
+
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="produtos-risco.html">⚠️ Produtos em risco</a>
+<a href="promocoes.html">💰 Promoções</a>
+<a href="ranking.html">📉 Ranking</a>
+<a href="registrar-validade.html">➕ Registrar lote</a>
+
+<a href="#" onclick="logout()">🚪 Sair</a>
+
+</div>
+
+
+<div class="main">
+
+<h1>📉 Ranking de funcionários</h1>
+
+<p id="usuarioLogado" style="margin-bottom:20px;font-weight:bold;"></p>
+
+<p>Funcionários que mais registraram produtos</p>
+
+<table>
+
+<thead>
+<tr>
+<th>#</th>
+<th>Funcionário</th>
+<th>Registros</th>
+</tr>
+</thead>
+
+<tbody id="tabelaRanking">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+// proteção de login
+const funcionario = localStorage.getItem("funcionario")
+
+if(!funcionario){
+window.location.href = "login.html"
+}
+
+// mostrar usuário logado
+document.getElementById("usuarioLogado").innerText =
+"Funcionário logado: " + funcionario
+
+
+function logout(){
+
+localStorage.removeItem("funcionario")
+
+window.location.href = "login.html"
+
+}
+
+
+async function carregarRanking(){
+
+const resposta = await fetch("http://127.0.0.1:8000/ranking")
+
+const ranking = await resposta.json()
+
+const tabela = document.getElementById("tabelaRanking")
+
+tabela.innerHTML = ""
+
+ranking.forEach((item, index) => {
+
+tabela.innerHTML += `
+<tr>
+<td class="posicao">${index + 1}</td>
+<td>${item.funcionario}</td>
+<td>${item.registros}</td>
+</tr>
+`
+
+})
+
+}
+
+carregarRanking()
+
+</script>
+
+</body>
+</html>

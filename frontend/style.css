@@ -1,0 +1,333 @@
+/* RESET */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Inter', Arial, sans-serif;
+}
+
+:root{
+--verde:#2E7D32;
+--amarelo:#FFC107;
+--cinza:#F5F5F5;
+--texto:#333;
+}
+
+body{
+background:var(--cinza);
+color:var(--texto);
+}
+
+
+/* ---------------- HEADER (LANDING) ---------------- */
+
+.header{
+background:white;
+padding:18px 60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.logo{
+font-size:22px;
+font-weight:700;
+color:var(--verde);
+text-decoration:none;
+}
+
+.menu a{
+color:#444;
+text-decoration:none;
+margin-left:30px;
+font-weight:600;
+}
+
+.menu a:hover{
+color:var(--verde);
+}
+
+
+/* ---------------- HERO ---------------- */
+
+.hero{
+max-width:1200px;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:100px 40px;
+gap:70px;
+}
+
+.hero-text{
+max-width:520px;
+}
+
+.hero h1{
+font-size:48px;
+color:var(--verde);
+margin-bottom:20px;
+}
+
+.hero p{
+font-size:20px;
+color:#555;
+margin-bottom:35px;
+line-height:1.6;
+}
+
+.hero img{
+width:520px;
+border-radius:14px;
+box-shadow:0 20px 40px rgba(0,0,0,0.15);
+}
+
+
+/* ---------------- SECTIONS ---------------- */
+
+.section{
+max-width:1300px;
+margin:auto;
+padding:40px 40px 100px 40px;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:12px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+min-width:200px;
+}
+
+/* GRID DOS CARDS */
+
+.cards{
+display:flex;
+gap:25px;
+margin-bottom:40px;
+}
+
+
+/* ---------------- FOOTER ---------------- */
+
+.footer{
+text-align:center;
+padding:40px;
+color:#777;
+font-size:14px;
+}
+
+
+/* ---------------- SIDEBAR (SISTEMA) ---------------- */
+
+.sidebar{
+width:220px;
+height:100vh;
+background:var(--verde);
+color:white;
+position:fixed;
+padding:25px 20px;
+}
+
+.sidebar h2{
+margin-bottom:30px;
+font-size:20px;
+}
+
+.sidebar a{
+display:block;
+color:white;
+text-decoration:none;
+padding:10px 8px;
+margin:6px 0;
+border-radius:6px;
+font-size:15px;
+}
+
+.sidebar a:hover{
+background:rgba(255,255,255,0.15);
+}
+
+
+/* ---------------- CONTEÚDO SISTEMA ---------------- */
+
+.main{
+margin-left:240px;
+padding:50px;
+}
+
+/* TITULOS */
+
+.main h1{
+margin-bottom:30px;
+}
+
+.main h2{
+margin-top:40px;
+margin-bottom:15px;
+}
+
+
+/* ---------------- TABELAS ---------------- */
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:10px;
+overflow:hidden;
+margin-top:20px;
+}
+
+thead{
+background:var(--verde);
+color:white;
+}
+
+th,td{
+padding:12px;
+text-align:left;
+}
+
+tr:nth-child(even){
+background:#f2f2f2;
+}
+
+
+/* ---------------- BOTÕES ---------------- */
+
+.btn{
+background:var(--amarelo);
+border:none;
+padding:12px 20px;
+border-radius:6px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.btn:hover{
+opacity:0.9;
+}
+
+
+/* ---------------- FORMULÁRIOS ---------------- */
+
+label{
+display:block;
+margin-top:15px;
+font-weight:bold;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:6px;
+border-radius:6px;
+border:1px solid #ccc;
+font-size:14px;
+margin-bottom:10px;
+}
+
+
+/* ---------------- LOGIN ---------------- */
+
+.login-page{
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+}
+
+.login-box{
+background:white;
+padding:40px;
+border-radius:14px;
+width:360px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.back{
+margin-top:20px;
+}
+
+.back a{
+color:var(--verde);
+text-decoration:none;
+font-weight:600;
+}
+
+
+/* ---------------- STATUS PRODUTOS ---------------- */
+
+.status-alerta{
+color:#E65100;
+font-weight:bold;
+}
+
+.status-vencido{
+color:red;
+font-weight:bold;
+}
+
+.desconto{
+font-weight:bold;
+color:var(--verde);
+}
+
+.perda{
+color:#c62828;
+font-weight:bold;
+}
+
+.posicao{
+font-weight:bold;
+color:var(--verde);
+}
+
+
+/* ---------------- PAGINA RESULTADOS ---------------- */
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:60px 30px;
+}
+
+.container h1{
+color:var(--verde);
+margin-bottom:30px;
+}
+
+.container h2{
+margin-top:40px;
+}
+
+.destaque{
+border-left:6px solid var(--amarelo);
+width:260px;
+}
+
+.destaque h2{
+font-size:32px;
+color:var(--verde);
+}
+
+
+/* ---------------- PAGINA SOBRE ---------------- */
+
+.images{
+display:flex;
+gap:40px;
+flex-wrap:wrap;
+margin-top:30px;
+}
+
+.images img{
+width:450px;
+border-radius:10px;
+box-shadow:0 6px 20px rgba(0,0,0,0.15);
+}

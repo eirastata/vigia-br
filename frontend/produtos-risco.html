@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Produtos em risco - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>Vigia BR</h2>
+
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="produtos-risco.html">⚠️ Produtos em risco</a>
+<a href="promocoes.html">💰 Promoções</a>
+<a href="ranking.html">📉 Ranking</a>
+<a href="registrar-validade.html">➕ Registrar lote</a>
+
+<a href="#" onclick="logout()">🚪 Sair</a>
+
+</div>
+
+
+<div class="main">
+
+<h1>Produtos em risco</h1>
+
+<p id="usuarioLogado" style="margin-bottom:20px;font-weight:bold;"></p>
+
+<table>
+
+<thead>
+<tr>
+<th>Produto</th>
+<th>Quantidade</th>
+<th>Validade</th>
+<th>Status</th>
+<th>Desconto</th>
+<th>Perda evitada</th>
+<th>Ação</th>
+</tr>
+</thead>
+
+<tbody id="tabelaRisco">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+// proteção de login
+const funcionario = localStorage.getItem("funcionario")
+
+if(!funcionario){
+window.location.href = "login.html"
+}
+
+// mostra quem está logado
+document.getElementById("usuarioLogado").innerText =
+"Funcionário logado: " + funcionario
+
+
+function logout(){
+
+localStorage.removeItem("funcionario")
+
+window.location.href="login.html"
+
+}
+
+
+async function carregarProdutosRisco(){
+
+const resposta = await fetch("http://127.0.0.1:8000/produtos-risco")
+
+const produtos = await resposta.json()
+
+const tabela = document.getElementById("tabelaRisco")
+
+tabela.innerHTML = ""
+
+produtos.forEach(produto => {
+
+let status = ""
+
+if(produto.dias_restantes <= 0){
+
+status = "<span class='status-vencido'>Vencido</span>"
+
+}
+
+else if(produto.dias_restantes == 1){
+
+status = "<span class='status-alerta'>Vence amanhã</span>"
+
+}
+
+else{
+
+status = "<span class='status-alerta'>" + produto.dias_restantes + " dias</span>"
+
+}
+
+
+// agora usamos o preço real do produto
+const preco = produto.preco_unitario || 10
+
+const perda = produto.quantidade * preco
+
+const precoPromo = preco * (1 - produto.desconto_sugerido / 100)
+
+const receita = precoPromo * produto.quantidade
+
+const perdaEvitada = perda - receita
+
+
+tabela.innerHTML += `
+<tr>
+<td>${produto.produto}</td>
+<td>${produto.quantidade}</td>
+<td>${produto.validade}</td>
+<td>${status}</td>
+<td class="desconto">🔥 ${produto.desconto_sugerido}%</td>
+<td class="perda">💰 R$ ${perdaEvitada.toFixed(2)}</td>
+<td>
+<button onclick="gerarEtiqueta('${produto.produto}', ${produto.desconto_sugerido}, '${produto.validade}')">
+🏷 Gerar etiqueta
+</button>
+</td>
+</tr>
+`
+
+})
+
+}
+
+
+function gerarEtiqueta(produto, desconto, validade){
+
+const janela = window.open("", "", "width=320,height=400")
+
+janela.document.write(`
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+padding:30px;
+}
+
+h1{
+color:red;
+margin-bottom:20px;
+}
+
+h2{
+margin:10px 0;
+}
+
+button{
+margin-top:20px;
+padding:10px 20px;
+font-size:16px;
+}
+
+</style>
+
+<h1>PROMOÇÃO</h1>
+
+<h2>${produto}</h2>
+
+<h1>${desconto}% OFF</h1>
+
+<p>Válido até ${validade}</p>
+
+<button onclick="window.print()">🖨 Imprimir</button>
+
+`)
+
+}
+
+carregarProdutosRisco()
+
+</script>
+
+</body>
+</html>

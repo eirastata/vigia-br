@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Login - Vigia BR</title>
+
+<link rel="stylesheet" href="style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body class="login-page">
+
+<div class="login-box">
+
+<div class="logo">Vigia BR</div>
+
+<label>Email</label>
+<input id="email" type="email" placeholder="seu@email.com">
+
+<label>Senha</label>
+<input id="senha" type="password" placeholder="********">
+
+<button class="btn" onclick="login()">Entrar</button>
+
+<div class="back">
+<a href="index.html">Voltar para a home</a>
+</div>
+
+</div>
+
+<script>
+
+// se já estiver logado, vai direto para o dashboard
+const funcionario = localStorage.getItem("funcionario")
+
+if(funcionario){
+window.location.href = "dashboard.html"
+}
+
+function login(){
+
+const email = document.getElementById("email").value
+const senha = document.getElementById("senha").value
+
+if(!email || !senha){
+alert("Preencha email e senha")
+return
+}
+
+// pega o nome antes do @
+let nomeFuncionario = email.split("@")[0]
+
+// deixa primeira letra maiúscula
+nomeFuncionario = nomeFuncionario.charAt(0).toUpperCase() + nomeFuncionario.slice(1)
+
+// salva no navegador
+localStorage.setItem("funcionario", nomeFuncionario)
+
+// entra no sistema
+window.location.href="dashboard.html"
+
+}
+
+</script>
+
+</body>
+
+</html>
