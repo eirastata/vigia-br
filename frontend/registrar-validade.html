@@ -62,6 +62,10 @@
 
 <script>
 
+// URL da API em produção
+const API_URL = "https://vigia-br.onrender.com"
+
+
 // proteção de login
 const funcionario = localStorage.getItem("funcionario")
 
@@ -109,7 +113,7 @@ funcionario: funcionario
 
 try{
 
-const resposta = await fetch("http://127.0.0.1:8000/produtos",{
+const resposta = await fetch(`${API_URL}/produtos`,{
 
 method:"POST",
 headers:{
