@@ -46,7 +46,7 @@ Reduza perdas com produtos vencidos e transforme itens próximos da validade em 
 
 </div>
 
-<img src="../assets/imagens/imagem1.png">
+<img src="../assets/images/imagem1.png">
 
 </div>
 
@@ -102,6 +102,14 @@ Vigia BR • Sistema inteligente de controle de validade
 
 
 <script>
+
+// se já estiver logado, vai direto pro dashboard
+const funcionario = localStorage.getItem("funcionario")
+
+if(funcionario){
+window.location.href = "dashboard.html"
+}
+
 
 function entrarSistema(){
 

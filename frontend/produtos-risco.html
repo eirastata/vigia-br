@@ -60,6 +60,10 @@
 
 <script>
 
+// URL da API
+const API_URL = "https://vigia-br.onrender.com"
+
+
 // proteção de login
 const funcionario = localStorage.getItem("funcionario")
 
@@ -83,7 +87,9 @@ window.location.href="login.html"
 
 async function carregarProdutosRisco(){
 
-const resposta = await fetch("http://127.0.0.1:8000/produtos-risco")
+try{
+
+const resposta = await fetch(API_URL + "/produtos-risco")
 
 const produtos = await resposta.json()
 
@@ -114,12 +120,14 @@ status = "<span class='status-alerta'>" + produto.dias_restantes + " dias</span>
 }
 
 
-// agora usamos o preço real do produto
-const preco = produto.preco_unitario || 10
+// preço real do produto
+const preco = produto.preco_unitario || 0
+
+const desconto = produto.desconto_sugerido || 0
 
 const perda = produto.quantidade * preco
 
-const precoPromo = preco * (1 - produto.desconto_sugerido / 100)
+const precoPromo = preco * (1 - desconto / 100)
 
 const receita = precoPromo * produto.quantidade
 
@@ -132,10 +140,10 @@ tabela.innerHTML += `
 <td>${produto.quantidade}</td>
 <td>${produto.validade}</td>
 <td>${status}</td>
-<td class="desconto">🔥 ${produto.desconto_sugerido}%</td>
+<td class="desconto">🔥 ${desconto}%</td>
 <td class="perda">💰 R$ ${perdaEvitada.toFixed(2)}</td>
 <td>
-<button onclick="gerarEtiqueta('${produto.produto}', ${produto.desconto_sugerido}, '${produto.validade}')">
+<button onclick="gerarEtiqueta('${produto.produto}', ${desconto}, '${produto.validade}')">
 🏷 Gerar etiqueta
 </button>
 </td>
@@ -143,6 +151,12 @@ tabela.innerHTML += `
 `
 
 })
+
+}catch(erro){
+
+console.error("Erro ao carregar produtos em risco:", erro)
+
+}
 
 }
 
