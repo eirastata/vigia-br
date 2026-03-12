@@ -62,7 +62,7 @@
 
 <script>
 
-// URL da API em produção
+// URL da API
 const API_URL = "https://vigia-br.onrender.com"
 
 
@@ -81,7 +81,6 @@ document.getElementById("usuarioLogado").innerText =
 function logout(){
 
 localStorage.removeItem("funcionario")
-
 window.location.href="login.html"
 
 }
@@ -114,19 +113,20 @@ funcionario: funcionario
 try{
 
 const resposta = await fetch(`${API_URL}/produtos`,{
-
 method:"POST",
 headers:{
 "Content-Type":"application/json"
 },
 body: JSON.stringify(dados)
-
 })
 
-await resposta.json()
+if(!resposta.ok){
+throw new Error("Erro ao registrar lote")
+}
 
 alert("Lote registrado com sucesso!")
 
+// limpa formulário
 document.getElementById("produto").value=""
 document.getElementById("quantidade").value=""
 document.getElementById("preco").value=""
@@ -135,7 +135,8 @@ document.getElementById("validade").value=""
 
 }catch(erro){
 
-alert("Erro ao registrar lote")
+console.error("Erro:", erro)
+alert("Não foi possível registrar o lote. Tente novamente.")
 
 }
 
