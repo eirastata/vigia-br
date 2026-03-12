@@ -72,6 +72,7 @@
 <th>Validade</th>
 <th>Dias restantes</th>
 <th>Funcionário</th>
+<th>Ações</th>
 </tr>
 </thead>
 
@@ -85,7 +86,7 @@
 
 <script>
 
-// URL da API em produção
+// URL da API
 const API_URL = "https://vigia-br.onrender.com"
 
 
@@ -111,6 +112,40 @@ window.location.href = "login.html"
 }
 
 
+
+// ============================
+// EXCLUIR PRODUTO
+// ============================
+
+async function excluirProduto(id){
+
+const confirmar = confirm("Tem certeza que deseja excluir este produto?")
+
+if(!confirmar) return
+
+try{
+
+await fetch(API_URL + "/produtos/" + id,{
+method:"DELETE"
+})
+
+alert("Produto excluído")
+
+carregarDashboard()
+
+}catch(erro){
+
+console.error("Erro ao excluir produto:", erro)
+
+}
+
+}
+
+
+
+// ============================
+// CARREGAR DASHBOARD
+// ============================
 
 async function carregarDashboard(){
 
@@ -143,6 +178,13 @@ tabela.innerHTML += `
 <td>${produto.validade}</td>
 <td>${produto.dias_restantes}</td>
 <td>${produto.funcionario}</td>
+
+<td>
+<button onclick="excluirProduto(${produto.id})">
+🗑 Excluir
+</button>
+</td>
+
 </tr>
 `
 
