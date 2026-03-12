@@ -65,6 +65,10 @@
 
 <script>
 
+// URL da API em produção
+const API_URL = "https://vigia-br.onrender.com"
+
+
 // proteção de login
 const funcionario = localStorage.getItem("funcionario")
 
@@ -80,7 +84,6 @@ document.getElementById("usuarioLogado").innerText =
 function logout(){
 
 localStorage.removeItem("funcionario")
-
 window.location.href = "login.html"
 
 }
@@ -88,10 +91,15 @@ window.location.href = "login.html"
 
 async function carregarResultados(){
 
-const resposta = await fetch("http://127.0.0.1:8000/impacto-financeiro")
+try{
+
+const resposta = await fetch(API_URL + "/impacto-financeiro")
+
+if(!resposta.ok){
+throw new Error("Erro ao carregar dados financeiros")
+}
 
 const financeiro = await resposta.json()
-
 
 document.getElementById("perdaEvitada").innerText =
 "R$ " + financeiro.perda_evitada
@@ -115,6 +123,12 @@ tabela.innerHTML = `
 <td>R$ ${financeiro.perda_evitada}</td>
 </tr>
 `
+
+}catch(erro){
+
+console.error("Erro ao carregar resultados:", erro)
+
+}
 
 }
 
