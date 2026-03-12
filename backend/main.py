@@ -179,6 +179,56 @@ def enviar_whatsapp_alerta(mensagem):
     requests.get(url)
 
 # ==============================
+# FUNÇÃO CENTRAL DE ALERTA
+# ==============================
+
+def verificar_produtos_e_enviar_alerta():
+
+    db = SessionLocal()
+
+    hoje = datetime.now().date()
+    limite = hoje + timedelta(days=7)
+
+    produtos = db.query(ProdutoDB).all()
+
+    criticos = []
+
+    for p in produtos:
+
+        try:
+            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
+        except:
+            continue
+
+        if hoje <= data_validade <= limite:
+
+            dias_restantes = (data_validade - hoje).days
+
+            criticos.append({
+                "produto": p.produto,
+                "quantidade": p.quantidade,
+                "dias_restantes": dias_restantes
+            })
+
+    db.close()
+
+    if len(criticos) == 0:
+        print("Nenhum produto próximo da validade hoje.")
+        return {"mensagem": "Nenhum produto crítico"}
+
+    mensagem = gerar_mensagem_alerta(criticos)
+
+    enviar_email_alerta(mensagem)
+    enviar_whatsapp_alerta(mensagem)
+
+    print("Alerta enviado!")
+
+    return {
+        "status": "alerta enviado",
+        "produtos_alertados": len(criticos)
+    }
+
+# ==============================
 # ROTAS
 # ==============================
 
@@ -239,7 +289,7 @@ def listar_produtos():
     return resultado
 
 # ==============================
-# RANKING FUNCIONARIOS
+# RANKING
 # ==============================
 
 @app.get("/ranking")
@@ -306,7 +356,8 @@ def produtos_em_risco():
                 "validade": p.validade,
                 "dias_restantes": dias_restantes,
                 "funcionario": p.funcionario,
-                "desconto_sugerido": desconto
+                "desconto_sugerido": desconto,
+                "preco_unitario": p.preco_unitario
             })
 
     db.close()
@@ -370,57 +421,18 @@ def impacto_financeiro():
 
 @app.get("/enviar-alerta")
 def enviar_alerta():
-
-    produtos = produtos_em_risco()
-
-    criticos = []
-
-    for p in produtos:
-        if p["dias_restantes"] <= 3:
-            criticos.append(p)
-
-    if len(criticos) == 0:
-        return {"mensagem": "Nenhum produto crítico"}
-
-    mensagem = gerar_mensagem_alerta(criticos)
-
-    enviar_email_alerta(mensagem)
-    enviar_whatsapp_alerta(mensagem)
-
-    return {
-        "status": "alerta enviado",
-        "produtos_alertados": len(criticos)
-    }
+    return verificar_produtos_e_enviar_alerta()
 
 # ==============================
-# ALERTA AUTOMÁTICO DIÁRIO
+# ALERTA AUTOMÁTICO 08:00
 # ==============================
 
 scheduler = BackgroundScheduler()
 
-def verificar_alertas_diarios():
+def alerta_diario():
+    print("Executando verificação automática...")
+    verificar_produtos_e_enviar_alerta()
 
-    print("Verificando produtos críticos...")
-
-    produtos = produtos_em_risco()
-
-    criticos = []
-
-    for p in produtos:
-        if p["dias_restantes"] <= 3:
-            criticos.append(p)
-
-    if len(criticos) == 0:
-        print("Nenhum produto crítico hoje.")
-        return
-
-    mensagem = gerar_mensagem_alerta(criticos)
-
-    enviar_email_alerta(mensagem)
-    enviar_whatsapp_alerta(mensagem)
-
-    print("Alerta automático enviado!")
-
-scheduler.add_job(verificar_alertas_diarios, "cron", hour=8, minute=0)
+scheduler.add_job(alerta_diario, "cron", hour=8, minute=0)
 
 scheduler.start()
