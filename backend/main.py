@@ -43,15 +43,12 @@ WHATSAPP_PHONE = os.getenv("WHATSAPP_PHONE")
 WHATSAPP_APIKEY = os.getenv("WHATSAPP_APIKEY")
 
 # ==============================
-# CONFIG BANCO
+# CONFIG BANCO (POSTGRESQL)
 # ==============================
 
-DATABASE_URL = "sqlite:///vigia.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
@@ -246,10 +243,6 @@ def verificar_produtos_e_enviar_alerta():
 def home():
     return {"mensagem": "API Vigia BR funcionando"}
 
-# ==============================
-# CRIAR PRODUTO
-# ==============================
-
 @app.post("/produtos")
 def criar_produto(produto: Produto):
 
@@ -269,10 +262,6 @@ def criar_produto(produto: Produto):
     db.close()
 
     return {"status": "produto registrado"}
-
-# ==============================
-# LISTAR PRODUTOS
-# ==============================
 
 @app.get("/produtos")
 def listar_produtos():
@@ -299,133 +288,6 @@ def listar_produtos():
     return resultado
 
 # ==============================
-# RANKING
-# ==============================
-
-@app.get("/ranking")
-def ranking_funcionarios():
-
-    db = SessionLocal()
-
-    ranking = db.query(
-        ProdutoDB.funcionario,
-        func.count(ProdutoDB.id).label("registros")
-    ).group_by(
-        ProdutoDB.funcionario
-    ).order_by(
-        func.count(ProdutoDB.id).desc()
-    ).all()
-
-    resultado = []
-
-    for r in ranking:
-        resultado.append({
-            "funcionario": r.funcionario,
-            "registros": r.registros
-        })
-
-    db.close()
-
-    return resultado
-
-# ==============================
-# PRODUTOS EM RISCO
-# ==============================
-
-@app.get("/produtos-risco")
-def produtos_em_risco():
-
-    db = SessionLocal()
-
-    hoje = datetime.now().date()
-    limite = hoje + timedelta(days=7)
-
-    produtos = db.query(ProdutoDB).all()
-
-    resultado = []
-
-    for p in produtos:
-
-        try:
-            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
-        except:
-            continue
-
-        if hoje <= data_validade <= limite:
-
-            dias_restantes = (data_validade - hoje).days
-
-            desconto = calcular_desconto(
-                dias_restantes,
-                p.quantidade
-            )
-
-            resultado.append({
-                "produto": p.produto,
-                "quantidade": p.quantidade,
-                "validade": p.validade,
-                "dias_restantes": dias_restantes,
-                "funcionario": p.funcionario,
-                "desconto_sugerido": desconto,
-                "preco_unitario": p.preco_unitario
-            })
-
-    db.close()
-
-    return resultado
-
-# ==============================
-# IMPACTO FINANCEIRO
-# ==============================
-
-@app.get("/impacto-financeiro")
-def impacto_financeiro():
-
-    db = SessionLocal()
-
-    produtos = db.query(ProdutoDB).all()
-
-    perda_total = 0
-    receita_promocao = 0
-
-    hoje = datetime.now().date()
-
-    for p in produtos:
-
-        try:
-            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
-        except:
-            continue
-
-        dias_restantes = (data_validade - hoje).days
-
-        if dias_restantes <= 7:
-
-            perda = p.quantidade * p.preco_unitario
-
-            desconto = calcular_desconto(
-                dias_restantes,
-                p.quantidade
-            )
-
-            preco_promo = p.preco_unitario * (1 - desconto/100)
-
-            receita = preco_promo * p.quantidade
-
-            perda_total += perda
-            receita_promocao += receita
-
-    db.close()
-
-    perda_evitada = perda_total - receita_promocao
-
-    return {
-        "perda_total": round(perda_total,2),
-        "receita_promocao": round(receita_promocao,2),
-        "perda_evitada": round(perda_evitada,2)
-    }
-
-# ==============================
 # ALERTA MANUAL
 # ==============================
 
@@ -434,7 +296,7 @@ def enviar_alerta():
     return verificar_produtos_e_enviar_alerta()
 
 # ==============================
-# ALERTA AUTOMÁTICO 08:00
+# ALERTA AUTOMÁTICO
 # ==============================
 
 scheduler = BackgroundScheduler()
