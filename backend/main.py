@@ -48,9 +48,20 @@ WHATSAPP_APIKEY = os.getenv("WHATSAPP_APIKEY")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+# correção necessária no Render
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-SessionLocal = sessionmaker(bind=engine)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
 Base = declarative_base()
 
@@ -86,157 +97,6 @@ class Produto(BaseModel):
     funcionario: str
 
 # ==============================
-# DESCONTO
-# ==============================
-
-def calcular_desconto(dias_restantes, quantidade):
-
-    if dias_restantes >= 7:
-        desconto = 10
-    elif dias_restantes >= 5:
-        desconto = 20
-    elif dias_restantes >= 3:
-        desconto = 30
-    elif dias_restantes == 2:
-        desconto = 40
-    elif dias_restantes == 1:
-        desconto = 60
-    else:
-        desconto = 80
-
-    if quantidade > 50:
-        desconto += 20
-    elif quantidade > 20:
-        desconto += 10
-
-    if desconto > 90:
-        desconto = 90
-
-    return desconto
-
-# ==============================
-# GERAR ALERTA
-# ==============================
-
-def gerar_mensagem_alerta(produtos):
-
-    mensagem = "⚠ ALERTA VIGIA BR\n\n"
-    mensagem += "Produtos próximos de vencer:\n\n"
-
-    for p in produtos:
-
-        mensagem += (
-            f"• {p['produto']}\n"
-            f"Quantidade: {p['quantidade']}\n"
-            f"Vence em: {p['dias_restantes']} dias\n\n"
-        )
-
-    mensagem += "Verifique promoções imediatamente."
-
-    return mensagem
-
-# ==============================
-# EMAIL
-# ==============================
-
-def enviar_email_alerta(mensagem):
-
-    if not EMAIL_REMETENTE:
-        return
-
-    try:
-
-        msg = MIMEText(mensagem)
-
-        msg["Subject"] = "⚠ Alerta Vigia BR"
-        msg["From"] = EMAIL_REMETENTE
-        msg["To"] = EMAIL_DESTINO
-
-        servidor = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-
-        servidor.login(EMAIL_REMETENTE, EMAIL_SENHA)
-
-        servidor.sendmail(
-            EMAIL_REMETENTE,
-            EMAIL_DESTINO,
-            msg.as_string()
-        )
-
-        servidor.quit()
-
-    except Exception as e:
-
-        print("Erro email:", e)
-
-# ==============================
-# WHATSAPP
-# ==============================
-
-def enviar_whatsapp_alerta(mensagem):
-
-    if not WHATSAPP_PHONE or not WHATSAPP_APIKEY:
-        return
-
-    texto = urllib.parse.quote(mensagem)
-
-    url = f"https://api.callmebot.com/whatsapp.php?phone={WHATSAPP_PHONE}&text={texto}&apikey={WHATSAPP_APIKEY}"
-
-    try:
-
-        requests.get(url, timeout=5)
-
-    except Exception as e:
-
-        print("Erro WhatsApp:", e)
-
-# ==============================
-# VERIFICAR PRODUTOS
-# ==============================
-
-def verificar_produtos_e_enviar_alerta():
-
-    db = SessionLocal()
-
-    hoje = datetime.now().date()
-    limite = hoje + timedelta(days=7)
-
-    produtos = db.query(ProdutoDB).all()
-
-    criticos = []
-
-    for p in produtos:
-
-        try:
-            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
-        except:
-            continue
-
-        if hoje <= data_validade <= limite:
-
-            dias_restantes = (data_validade - hoje).days
-
-            criticos.append({
-                "produto": p.produto,
-                "quantidade": p.quantidade,
-                "dias_restantes": dias_restantes
-            })
-
-    db.close()
-
-    if len(criticos) == 0:
-        return {"mensagem": "Nenhum produto crítico"}
-
-    mensagem = gerar_mensagem_alerta(criticos)
-
-    enviar_email_alerta(mensagem)
-    enviar_whatsapp_alerta(mensagem)
-
-    return {
-        "status": "alerta enviado",
-        "produtos_alertados": len(criticos)
-    }
-
-# ==============================
 # ROTAS
 # ==============================
 
@@ -264,9 +124,14 @@ def criar_produto(produto: Produto):
 
     db.add(novo_produto)
     db.commit()
+    db.refresh(novo_produto)
+
     db.close()
 
-    return {"status": "produto registrado"}
+    return {
+        "status": "produto registrado",
+        "id": novo_produto.id
+    }
 
 # ==============================
 # LISTAR PRODUTOS
@@ -298,6 +163,32 @@ def listar_produtos():
     return resultado
 
 # ==============================
+# EXCLUIR PRODUTO
+# ==============================
+
+@app.delete("/produtos/{produto_id}")
+def excluir_produto(produto_id: int):
+
+    db = SessionLocal()
+
+    produto = db.query(ProdutoDB).filter(
+        ProdutoDB.id == produto_id
+    ).first()
+
+    if not produto:
+
+        db.close()
+
+        return {"erro": "Produto não encontrado"}
+
+    db.delete(produto)
+    db.commit()
+
+    db.close()
+
+    return {"status": "produto excluído"}
+
+# ==============================
 # PRODUTOS EM RISCO
 # ==============================
 
@@ -316,7 +207,10 @@ def produtos_em_risco():
     for p in produtos:
 
         try:
-            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
+            data_validade = datetime.strptime(
+                p.validade,
+                "%Y-%m-%d"
+            ).date()
         except:
             continue
 
@@ -336,47 +230,3 @@ def produtos_em_risco():
     db.close()
 
     return resultado
-
-# ==============================
-# EXCLUIR PRODUTO
-# ==============================
-
-@app.delete("/produtos/{produto_id}")
-def excluir_produto(produto_id: int):
-
-    db = SessionLocal()
-
-    produto = db.query(ProdutoDB).filter(ProdutoDB.id == produto_id).first()
-
-    if not produto:
-
-        db.close()
-
-        return {"erro": "Produto não encontrado"}
-
-    db.delete(produto)
-    db.commit()
-    db.close()
-
-    return {"status": "produto excluído"}
-
-# ==============================
-# ALERTA MANUAL
-# ==============================
-
-@app.get("/enviar-alerta")
-def enviar_alerta():
-    return verificar_produtos_e_enviar_alerta()
-
-# ==============================
-# ALERTA AUTOMÁTICO
-# ==============================
-
-scheduler = BackgroundScheduler()
-
-def alerta_diario():
-    verificar_produtos_e_enviar_alerta()
-
-scheduler.add_job(alerta_diario, "cron", hour=8, minute=0)
-
-scheduler.start()
