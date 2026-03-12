@@ -130,7 +130,7 @@ await fetch(API_URL + "/produtos/" + id,{
 method:"DELETE"
 })
 
-alert("Produto excluído")
+alert("Produto excluído com sucesso")
 
 carregarDashboard()
 
@@ -187,7 +187,7 @@ tabela.innerHTML += `
 <td>${produto.funcionario}</td>
 
 <td>
-<button onclick="excluirProduto(${produto.id})">
+<button class="btn-excluir" onclick="excluirProduto(${produto.id})">
 🗑 Excluir
 </button>
 </td>
