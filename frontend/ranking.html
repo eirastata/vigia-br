@@ -59,6 +59,10 @@
 
 <script>
 
+// URL da API em produção
+const API_URL = "https://vigia-br.onrender.com"
+
+
 // proteção de login
 const funcionario = localStorage.getItem("funcionario")
 
@@ -82,7 +86,9 @@ window.location.href = "login.html"
 
 async function carregarRanking(){
 
-const resposta = await fetch("http://127.0.0.1:8000/ranking")
+try{
+
+const resposta = await fetch(API_URL + "/ranking")
 
 const ranking = await resposta.json()
 
@@ -101,6 +107,12 @@ tabela.innerHTML += `
 `
 
 })
+
+}catch(erro){
+
+console.error("Erro ao carregar ranking:", erro)
+
+}
 
 }
 
