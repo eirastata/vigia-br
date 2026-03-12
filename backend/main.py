@@ -43,7 +43,7 @@ WHATSAPP_PHONE = os.getenv("WHATSAPP_PHONE")
 WHATSAPP_APIKEY = os.getenv("WHATSAPP_APIKEY")
 
 # ==============================
-# CONFIG BANCO (POSTGRES)
+# CONFIG BANCO
 # ==============================
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -73,7 +73,7 @@ class ProdutoDB(Base):
 Base.metadata.create_all(bind=engine)
 
 # ==============================
-# SCHEMA API
+# SCHEMA
 # ==============================
 
 class Produto(BaseModel):
@@ -86,7 +86,7 @@ class Produto(BaseModel):
     funcionario: str
 
 # ==============================
-# CALCULO DESCONTO
+# DESCONTO
 # ==============================
 
 def calcular_desconto(dias_restantes, quantidade):
@@ -115,7 +115,7 @@ def calcular_desconto(dias_restantes, quantidade):
     return desconto
 
 # ==============================
-# GERAR MENSAGEM ALERTA
+# GERAR ALERTA
 # ==============================
 
 def gerar_mensagem_alerta(produtos):
@@ -142,7 +142,6 @@ def gerar_mensagem_alerta(produtos):
 def enviar_email_alerta(mensagem):
 
     if not EMAIL_REMETENTE:
-        print("Email não configurado")
         return
 
     try:
@@ -165,11 +164,9 @@ def enviar_email_alerta(mensagem):
 
         servidor.quit()
 
-        print("Email enviado!")
-
     except Exception as e:
 
-        print("Erro ao enviar email:", e)
+        print("Erro email:", e)
 
 # ==============================
 # WHATSAPP
@@ -178,7 +175,6 @@ def enviar_email_alerta(mensagem):
 def enviar_whatsapp_alerta(mensagem):
 
     if not WHATSAPP_PHONE or not WHATSAPP_APIKEY:
-        print("WhatsApp não configurado")
         return
 
     texto = urllib.parse.quote(mensagem)
@@ -189,11 +185,9 @@ def enviar_whatsapp_alerta(mensagem):
 
         requests.get(url, timeout=5)
 
-        print("WhatsApp enviado!")
-
     except Exception as e:
 
-        print("Erro ao enviar WhatsApp:", e)
+        print("Erro WhatsApp:", e)
 
 # ==============================
 # VERIFICAR PRODUTOS
@@ -204,7 +198,6 @@ def verificar_produtos_e_enviar_alerta():
     db = SessionLocal()
 
     hoje = datetime.now().date()
-
     limite = hoje + timedelta(days=7)
 
     produtos = db.query(ProdutoDB).all()
@@ -231,18 +224,12 @@ def verificar_produtos_e_enviar_alerta():
     db.close()
 
     if len(criticos) == 0:
-
-        print("Nenhum produto próximo da validade hoje.")
-
         return {"mensagem": "Nenhum produto crítico"}
 
     mensagem = gerar_mensagem_alerta(criticos)
 
     enviar_email_alerta(mensagem)
-
     enviar_whatsapp_alerta(mensagem)
-
-    print("Alerta enviado!")
 
     return {
         "status": "alerta enviado",
@@ -276,9 +263,7 @@ def criar_produto(produto: Produto):
     )
 
     db.add(novo_produto)
-
     db.commit()
-
     db.close()
 
     return {"status": "produto registrado"}
@@ -313,6 +298,46 @@ def listar_produtos():
     return resultado
 
 # ==============================
+# PRODUTOS EM RISCO
+# ==============================
+
+@app.get("/produtos-risco")
+def produtos_em_risco():
+
+    db = SessionLocal()
+
+    hoje = datetime.now().date()
+    limite = hoje + timedelta(days=7)
+
+    produtos = db.query(ProdutoDB).all()
+
+    resultado = []
+
+    for p in produtos:
+
+        try:
+            data_validade = datetime.strptime(p.validade, "%Y-%m-%d").date()
+        except:
+            continue
+
+        if hoje <= data_validade <= limite:
+
+            dias_restantes = (data_validade - hoje).days
+
+            resultado.append({
+                "id": p.id,
+                "produto": p.produto,
+                "quantidade": p.quantidade,
+                "validade": p.validade,
+                "dias_restantes": dias_restantes,
+                "funcionario": p.funcionario
+            })
+
+    db.close()
+
+    return resultado
+
+# ==============================
 # EXCLUIR PRODUTO
 # ==============================
 
@@ -330,9 +355,7 @@ def excluir_produto(produto_id: int):
         return {"erro": "Produto não encontrado"}
 
     db.delete(produto)
-
     db.commit()
-
     db.close()
 
     return {"status": "produto excluído"}
@@ -352,9 +375,6 @@ def enviar_alerta():
 scheduler = BackgroundScheduler()
 
 def alerta_diario():
-
-    print("Executando verificação automática...")
-
     verificar_produtos_e_enviar_alerta()
 
 scheduler.add_job(alerta_diario, "cron", hour=8, minute=0)
