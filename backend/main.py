@@ -144,23 +144,28 @@ def enviar_email_alerta(mensagem):
         print("Email não configurado")
         return
 
-    msg = MIMEText(mensagem)
+    try:
+        msg = MIMEText(mensagem)
 
-    msg["Subject"] = "⚠ Alerta Vigia BR"
-    msg["From"] = EMAIL_REMETENTE
-    msg["To"] = EMAIL_DESTINO
+        msg["Subject"] = "⚠ Alerta Vigia BR"
+        msg["From"] = EMAIL_REMETENTE
+        msg["To"] = EMAIL_DESTINO
 
-    servidor = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        servidor = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        servidor.login(EMAIL_REMETENTE, EMAIL_SENHA)
 
-    servidor.login(EMAIL_REMETENTE, EMAIL_SENHA)
+        servidor.sendmail(
+            EMAIL_REMETENTE,
+            EMAIL_DESTINO,
+            msg.as_string()
+        )
 
-    servidor.sendmail(
-        EMAIL_REMETENTE,
-        EMAIL_DESTINO,
-        msg.as_string()
-    )
+        servidor.quit()
 
-    servidor.quit()
+        print("Email enviado!")
+
+    except Exception as e:
+        print("Erro ao enviar email:", e)
 
 # ==============================
 # ENVIAR WHATSAPP
@@ -176,7 +181,12 @@ def enviar_whatsapp_alerta(mensagem):
 
     url = f"https://api.callmebot.com/whatsapp.php?phone={WHATSAPP_PHONE}&text={texto}&apikey={WHATSAPP_APIKEY}"
 
-    requests.get(url)
+    try:
+        requests.get(url, timeout=5)
+        print("WhatsApp enviado!")
+
+    except Exception as e:
+        print("Erro ao enviar WhatsApp:", e)
 
 # ==============================
 # FUNÇÃO CENTRAL DE ALERTA
