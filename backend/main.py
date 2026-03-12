@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Float, func
+from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import sessionmaker, declarative_base
 from datetime import datetime, timedelta
 
@@ -43,7 +43,7 @@ WHATSAPP_PHONE = os.getenv("WHATSAPP_PHONE")
 WHATSAPP_APIKEY = os.getenv("WHATSAPP_APIKEY")
 
 # ==============================
-# CONFIG BANCO (POSTGRESQL)
+# CONFIG BANCO (POSTGRES)
 # ==============================
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -51,6 +51,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(bind=engine)
+
 Base = declarative_base()
 
 # ==============================
@@ -58,6 +59,7 @@ Base = declarative_base()
 # ==============================
 
 class ProdutoDB(Base):
+
     __tablename__ = "produtos"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -75,6 +77,7 @@ Base.metadata.create_all(bind=engine)
 # ==============================
 
 class Produto(BaseModel):
+
     produto: str
     quantidade: int
     preco_unitario: float
@@ -121,6 +124,7 @@ def gerar_mensagem_alerta(produtos):
     mensagem += "Produtos próximos de vencer:\n\n"
 
     for p in produtos:
+
         mensagem += (
             f"• {p['produto']}\n"
             f"Quantidade: {p['quantidade']}\n"
@@ -132,7 +136,7 @@ def gerar_mensagem_alerta(produtos):
     return mensagem
 
 # ==============================
-# ENVIAR EMAIL
+# EMAIL
 # ==============================
 
 def enviar_email_alerta(mensagem):
@@ -142,6 +146,7 @@ def enviar_email_alerta(mensagem):
         return
 
     try:
+
         msg = MIMEText(mensagem)
 
         msg["Subject"] = "⚠ Alerta Vigia BR"
@@ -149,6 +154,7 @@ def enviar_email_alerta(mensagem):
         msg["To"] = EMAIL_DESTINO
 
         servidor = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+
         servidor.login(EMAIL_REMETENTE, EMAIL_SENHA)
 
         servidor.sendmail(
@@ -162,10 +168,11 @@ def enviar_email_alerta(mensagem):
         print("Email enviado!")
 
     except Exception as e:
+
         print("Erro ao enviar email:", e)
 
 # ==============================
-# ENVIAR WHATSAPP
+# WHATSAPP
 # ==============================
 
 def enviar_whatsapp_alerta(mensagem):
@@ -179,14 +186,17 @@ def enviar_whatsapp_alerta(mensagem):
     url = f"https://api.callmebot.com/whatsapp.php?phone={WHATSAPP_PHONE}&text={texto}&apikey={WHATSAPP_APIKEY}"
 
     try:
+
         requests.get(url, timeout=5)
+
         print("WhatsApp enviado!")
 
     except Exception as e:
+
         print("Erro ao enviar WhatsApp:", e)
 
 # ==============================
-# FUNÇÃO CENTRAL DE ALERTA
+# VERIFICAR PRODUTOS
 # ==============================
 
 def verificar_produtos_e_enviar_alerta():
@@ -194,6 +204,7 @@ def verificar_produtos_e_enviar_alerta():
     db = SessionLocal()
 
     hoje = datetime.now().date()
+
     limite = hoje + timedelta(days=7)
 
     produtos = db.query(ProdutoDB).all()
@@ -220,12 +231,15 @@ def verificar_produtos_e_enviar_alerta():
     db.close()
 
     if len(criticos) == 0:
+
         print("Nenhum produto próximo da validade hoje.")
+
         return {"mensagem": "Nenhum produto crítico"}
 
     mensagem = gerar_mensagem_alerta(criticos)
 
     enviar_email_alerta(mensagem)
+
     enviar_whatsapp_alerta(mensagem)
 
     print("Alerta enviado!")
@@ -243,6 +257,10 @@ def verificar_produtos_e_enviar_alerta():
 def home():
     return {"mensagem": "API Vigia BR funcionando"}
 
+# ==============================
+# CRIAR PRODUTO
+# ==============================
+
 @app.post("/produtos")
 def criar_produto(produto: Produto):
 
@@ -258,10 +276,16 @@ def criar_produto(produto: Produto):
     )
 
     db.add(novo_produto)
+
     db.commit()
+
     db.close()
 
     return {"status": "produto registrado"}
+
+# ==============================
+# LISTAR PRODUTOS
+# ==============================
 
 @app.get("/produtos")
 def listar_produtos():
@@ -273,6 +297,7 @@ def listar_produtos():
     resultado = []
 
     for p in produtos:
+
         resultado.append({
             "id": p.id,
             "produto": p.produto,
@@ -286,6 +311,31 @@ def listar_produtos():
     db.close()
 
     return resultado
+
+# ==============================
+# EXCLUIR PRODUTO
+# ==============================
+
+@app.delete("/produtos/{produto_id}")
+def excluir_produto(produto_id: int):
+
+    db = SessionLocal()
+
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == produto_id).first()
+
+    if not produto:
+
+        db.close()
+
+        return {"erro": "Produto não encontrado"}
+
+    db.delete(produto)
+
+    db.commit()
+
+    db.close()
+
+    return {"status": "produto excluído"}
 
 # ==============================
 # ALERTA MANUAL
@@ -302,7 +352,9 @@ def enviar_alerta():
 scheduler = BackgroundScheduler()
 
 def alerta_diario():
+
     print("Executando verificação automática...")
+
     verificar_produtos_e_enviar_alerta()
 
 scheduler.add_job(alerta_diario, "cron", hour=8, minute=0)
