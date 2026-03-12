@@ -86,29 +86,30 @@
 
 <script>
 
-// URL da API
+// ============================
+// CONFIG
+// ============================
+
 const API_URL = "https://vigia-br.onrender.com"
 
 
-// verifica login
+// ============================
+// LOGIN
+// ============================
+
 const funcionario = localStorage.getItem("funcionario")
 
 if(!funcionario){
 window.location.href = "login.html"
 }
 
-// mostra quem está logado
 document.getElementById("usuarioLogado").innerText =
 "Funcionário logado: " + funcionario
 
 
-
 function logout(){
-
 localStorage.removeItem("funcionario")
-
 window.location.href = "login.html"
-
 }
 
 
@@ -151,7 +152,10 @@ async function carregarDashboard(){
 
 try{
 
-// PRODUTOS
+// ============================
+// TOTAL PRODUTOS
+// ============================
+
 const respostaProdutos = await fetch(API_URL + "/produtos")
 const produtos = await respostaProdutos.json()
 
@@ -159,7 +163,10 @@ document.getElementById("totalProdutos").innerText = produtos.length
 
 
 
+// ============================
 // PRODUTOS EM RISCO
+// ============================
+
 const respostaRisco = await fetch(API_URL + "/produtos-risco")
 const risco = await respostaRisco.json()
 
@@ -192,7 +199,12 @@ tabela.innerHTML += `
 
 
 
-// RANKING
+// ============================
+// RANKING (opcional)
+// ============================
+
+try{
+
 const respostaRanking = await fetch(API_URL + "/ranking")
 const ranking = await respostaRanking.json()
 
@@ -200,14 +212,33 @@ if(ranking.length > 0){
 document.getElementById("liderRanking").innerText = ranking[0].funcionario
 }
 
+}catch(e){
+
+console.log("Ranking ainda não disponível")
+
+}
 
 
-// IMPACTO FINANCEIRO
+
+// ============================
+// IMPACTO FINANCEIRO (opcional)
+// ============================
+
+try{
+
 const respostaFinanceiro = await fetch(API_URL + "/impacto-financeiro")
 const financeiro = await respostaFinanceiro.json()
 
+if(financeiro.perda_evitada){
 document.getElementById("perdaEvitada").innerText =
 "R$ " + financeiro.perda_evitada
+}
+
+}catch(e){
+
+console.log("Impacto financeiro ainda não disponível")
+
+}
 
 
 }catch(erro){
